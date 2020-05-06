@@ -14,4 +14,4 @@ Test the configuration by running
 
     make check
 
-[0](https://dl.acm.org/doi/10.1109/LCOMM.2010.06.100344)
+[0]: https://dl.acm.org/doi/10.1109/LCOMM.2010.06.100344
