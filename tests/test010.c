@@ -1,7 +1,7 @@
-/* test007.c
-   
-   Make sure that the dlbf_insert function returns zero when there the key to
-   be inserted causes no collisions.
+/* test010.c
+
+   Make sure that passing a NULL pointer to the dlbf_remove function does not
+   cause a segmentation fault.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,7 +25,5 @@
 
 int
 main (void) {
-  uint8_t *filt = dlbf_alloc (M, K, R);
-  
-  assert (dlbf_insert (filt, rand ()) == 0);
+  assert (dlbf_remove (NULL, rand ()) == -1);
 }

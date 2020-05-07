@@ -19,20 +19,27 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "dlbf.h"
 
-static uint8_t dlbf[(M + R - 1) / 8 + 1];
+#define META (3 * sizeof (unsigned))
 
-#define getbit(i) ((dlbf[(i) / 8] & (1 << (i) % 8)) == 1 << (i) % 8)
+/* Macros that can be used to extract a particular filter's metadata. */
+#define __M(filt) (((unsigned *) filt)[0])
+#define __K(filt) (((unsigned *) filt)[1])
+#define __R(filt) (((unsigned *) filt)[2])
+
+#define getbit(filt,i) \
+  (((filt)[(i) / 8 + META] & (1 << (i) % 8)) == 1 << (i) % 8)
 
 /* Monotonically set the specified bit to the specified value by increasing its
    value if possible. */
-#define incbit(i,b) (dlbf[(i) / 8] |= (b) << (i) % 8)
+#define incbit(filt,i,b) ((filt)[(i) / 8 + META] |= (b) << (i) % 8)
 
 /* Monotonically set the specified bit to the specified value by decreasing its
    value if possible. */
-#define decbit(i,b) (dlbf[(i) / 8] &= ~((!b) << (i) % 8))
+#define decbit(filt,i,b) ((filt)[(i) / 8 + META] &= ~((!b) << (i) % 8))
 
 /* Computes the the hash function H_i on input x. */
 static uint32_t
@@ -46,29 +53,60 @@ hash (int i, int x)
   return lower + upper;
 }
 
+/* Allocates a new deletable Bloom filter that is m bits long, applies k
+   discrete hash functions to each key, and tracks collision-freeness for r
+   regions. */
+uint8_t *
+dlbf_alloc (unsigned m, unsigned k, unsigned r)
+{
+  unsigned *filt;
+
+  if (m < 1 || k < 1 || r < 1 || r > m)
+    return NULL;
+
+  filt = calloc (META + (m + r - 1) / 8 + 1, 1);
+
+  if (filt == NULL)
+    return NULL;
+
+  filt[0] = m;
+  filt[1] = k;
+  filt[2] = r;
+
+  return (uint8_t *) filt;
+}
+
+void
+dlbf_free (uint8_t *filt)
+{
+  free (filt);
+}
+
 /* Inserts the specified key into the Bloom filter. Returns -1 if the key
    already exists and the number of non collision-free regions into which the
    K hash functions hash this particular key if not. */
 int
-insert (int x)
+dlbf_insert (uint8_t *filt, int x)
 {
-  /* The bits that are used to represent this particular key. */
-  uint32_t cache[K];
-
-  /* The number of bits in the cache that will lie in non collision-free
-     regions following the addition of this key into the Bloom filter. */
-  int collisions = 0;
-
-  if (query (x) == 1)
+  if (filt == NULL || dlbf_query (filt, x) == 1)
     return -1;
 
-  for (int i = 0; i < K; ++i)
+  unsigned m = __M (filt);
+  unsigned k = __K (filt);
+  unsigned r = __R (filt);
+  int collisions = 0;
+  
+  /* The bits that are used to represent this particular key. */
+  uint32_t cache[k];
+
+  for (int i = 0; i < (int) k; ++i)
     {
-      int collision;
-      
-      cache[i] = R + hash (i, x) % M;
-      collision = getbit (cache[i]);
-      incbit (cache[i] * R / M, collision);
+      uint8_t collision;
+      uint32_t h = hash (i, x) % m;
+
+      cache[i] = h + r;
+      collision = getbit (filt, cache[i]);
+      incbit (filt, h * r / m, collision);
       collisions += collision;
     }
 
@@ -76,8 +114,8 @@ insert (int x)
      that H_i (x) == H_j (x), we will detect a false collision. Therefore, in
      the most naive implementation, we calculate collisions before inserting
      the key. */
-  for (int i = 0; i < K; ++i)
-    incbit (cache[i], 1);
+  for (int i = 0; i < (int) k; ++i)
+    incbit (filt, cache[i], 1);
   
   return collisions;
 }
@@ -85,13 +123,14 @@ insert (int x)
 /* Queries the Bloom filter for the specified key. Returns 1 if the the key is
    found and 0 if not. */
 int
-query (int x)
+dlbf_query (uint8_t *filt, int x)
 {
-  for (int i = 0; i < K; ++i)
+  if (filt == NULL)
+    return -1;
+  
+  for (int i = 0; i < (int) __K (filt); ++i)
     {
-      uint32_t j = R + hash (i, x) % M;
-
-      if (getbit (j) == 0)
+      if (getbit (filt, hash (i, x) % __M (filt) + __R (filt)) == 0)
 	return 0;
     }
 
@@ -102,25 +141,26 @@ query (int x)
    collision-free regions into which the K hash functions hash this key if
    not. */
 int
-remove (int x)
+dlbf_remove (uint8_t *filt, int x)
 {
-  /* The number of bits used to represent this particular key that reside in
-     non collision-free regions. */
-  int collisions = 0;
-  
-  if (query (x) == 0)
+  if (filt == NULL || dlbf_query (filt, x) == 0)
     return -1;
 
-  for (int i = 0; i < K; ++i)
+  unsigned m = __M (filt);
+  unsigned k = __K (filt);
+  unsigned r = __R (filt);
+  int collisions = 0;
+
+  for (int i = 0; i < (int) k; ++i)
     {
-      uint32_t j = R + hash (i, x) % M;
-      uint8_t collision = getbit (j * R / M);
+      uint32_t h = hash (i, x) % m;
+      uint8_t collision = getbit (filt, h * r / m);
 
       collisions += collision;
-      decbit (j, collision);
+      decbit (filt, h + r, collision);
     }
 
-  assert (collisions <= K);
+  assert (collisions <= (int) k);
 
   return collisions;
 }

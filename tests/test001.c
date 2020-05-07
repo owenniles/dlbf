@@ -1,7 +1,7 @@
 /* test001.c
 
-   Make sure that the remove function works correctly in the trivial case in
-   which the Bloom filter is empty.
+   Make sure that the dlbf_remove function works correctly in the trivial case
+   in which the Bloom filter is empty.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,5 +25,7 @@
 
 int
 main (void) {
-  assert (remove (rand ()) == -1);
+  uint8_t *filt = dlbf_alloc (M, K, R);
+  
+  assert (dlbf_remove (filt, rand ()) == -1);
 }

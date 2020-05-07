@@ -1,7 +1,7 @@
 /* test004.c
 
-   Make sure that the remove function returns zero when removing an existing
-   key from the Bloom filter.
+   Make sure that the dlbf_remove function returns zero when removing an
+   existing key from the Bloom filter.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,8 +25,9 @@
 
 int
 main (void) {
+  uint8_t *filt = dlbf_alloc (M, K, R);
   int r = rand ();
   
-  insert (r);
-  assert (remove (r) == 0);
+  dlbf_insert (filt, r);
+  assert (dlbf_remove (filt, r) == 0);
 }

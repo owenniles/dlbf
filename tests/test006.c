@@ -1,7 +1,7 @@
 /* test006.c
 
-   Make sure that the remove function actually removes an existing key from the
-   Bloom filter.
+   Make sure that the dlbf_remove function actually removes an existing key
+   from the Bloom filter.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,9 +25,10 @@
 
 int
 main (void) {
+  uint8_t *filt = dlbf_alloc (M, K, R);
   int r = rand ();
   
-  insert (r);
-  remove (r);
-  assert (query (r) == 0);
+  dlbf_insert (filt, r);
+  dlbf_remove (filt, r);
+  assert (dlbf_query (filt, r) == 0);
 }

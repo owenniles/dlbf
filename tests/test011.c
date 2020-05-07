@@ -1,7 +1,6 @@
-/* test007.c
-   
-   Make sure that the dlbf_insert function returns zero when there the key to
-   be inserted causes no collisions.
+/* test011.c
+
+   Make sure that the dlbf_alloc function returns a non NULL pointer.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,7 +24,5 @@
 
 int
 main (void) {
-  uint8_t *filt = dlbf_alloc (M, K, R);
-  
-  assert (dlbf_insert (filt, rand ()) == 0);
+  assert (dlbf_alloc (M, K, R) != NULL);
 }

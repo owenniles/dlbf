@@ -1,7 +1,7 @@
 /* test002.c
 
-   Make sure that the insert function works correctly in the trivial case in
-   which the Bloom filter is empty.
+   Make sure that the dlbf_insert function works correctly in the trivial case
+   in which the Bloom filter is empty.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,5 +25,7 @@
 
 int
 main (void) {
-  assert (insert (rand ()) == 0);
+  uint8_t *filt = dlbf_alloc (M, K, R);
+  
+  assert (dlbf_insert (filt, rand ()) == 0);
 }

@@ -20,23 +20,18 @@
 #ifndef _DLBF_H_
 #define _DLBF_H_
 
-/* The number of different hash functions. */
-#ifndef K
-#define K 8
-#endif
+#include <stdint.h>
 
-/* The number of bits in the Bloom filter. */
-#ifndef M
+#ifdef TEST
 #define M 1024
-#endif
-
-/* The number of regions for which we track collision-freeness. */
-#ifndef R
+#define K 8
 #define R 16
 #endif
 
-int insert (int);
-int query (int);
-int remove (int);
+uint8_t *dlbf_alloc (unsigned, unsigned, unsigned);
+void dlbf_free (uint8_t *);
+int dlbf_insert (uint8_t *, int);
+int dlbf_query (uint8_t *, int);
+int dlbf_remove (uint8_t *, int);
 
 #endif /* not _DLBF_H_ */

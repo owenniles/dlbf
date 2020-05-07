@@ -6,12 +6,10 @@ Compile an object file by running
 
     make
 
-Optionally, tune the data structure by specifying `K` (the number discrete hash functions that are applied to each key), `M` (the length of the Bloom filter in bits) and `R` (the number of regions within which to track collisions) like so:
+Test a particular configuration of the data structure by running a command such as
 
     make DEFS="-DM=4096 -DR=128 -DK=16"
 
-Test the configuration by running
-
-    make check
+where M is the length of the Bloom filter in bits, K is the number of discrete hash functions that are applied to each key, and R is the number of regions in which collision-freeness is tracked.
 
 [0]: https://dl.acm.org/doi/10.1109/LCOMM.2010.06.100344

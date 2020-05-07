@@ -50,7 +50,7 @@ all $(TESTS): dlbf.o
 
 dlbf.o $(TESTOBJS): dlbf.h
 
-$(TESTOBJS): CPPFLAGS += -iquote .
+$(TESTOBJS): CPPFLAGS += -iquote . -DTEST
 
 check: $(CHECKS)
 

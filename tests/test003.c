@@ -1,7 +1,7 @@
 /* test003.c
 
-   Make sure that the query function correctly locates an existing key in the
-   Bloom filter.
+   Make sure that the dlbf_query function correctly locates an existing key in
+   the Bloom filter.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -25,8 +25,9 @@
 
 int
 main (void) {
+  uint8_t *filt = dlbf_alloc (M, K, R);
   int r = rand ();
   
-  insert (r);
-  assert (query (r) == 1);
+  dlbf_insert (filt, r);
+  assert (dlbf_query (filt, r) == 1);
 }
