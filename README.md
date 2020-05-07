@@ -10,6 +10,6 @@ Test a particular configuration of the data structure by running a command such 
 
     make DEFS="-DM=4096 -DR=128 -DK=16"
 
-where M is the length of the Bloom filter in bits, K is the number of discrete hash functions that are applied to each key, and R is the number of regions in which collision-freeness is tracked.
+where `M` is the length of the Bloom filter in bits, `K` is the number of discrete hash functions that are applied to each key, and `R` is the number of regions in which collision-freeness is tracked.
 
 [0]: https://dl.acm.org/doi/10.1109/LCOMM.2010.06.100344
