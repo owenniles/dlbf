@@ -1,6 +1,7 @@
-/* dlbf.h
-
-   DlBF interface and tunable declarations.
+/* test007.c
+   
+   Make sure that the insert function returns zero when there the key to be
+   inserted causes no collisions.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
 
@@ -17,26 +18,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef _DLBF_H_
-#define _DLBF_H_
+#include <assert.h>
+#include <stdlib.h>
 
-/* The number of different hash functions. */
-#ifndef K
-#define K 8
-#endif
+#include "dlbf.h"
 
-/* The number of bits in the Bloom filter. */
-#ifndef M
-#define M 1024
-#endif
-
-/* The number of regions for which we track collision-freeness. */
-#ifndef R
-#define R 16
-#endif
-
-int insert (int);
-int query (int);
-int remove (int);
-
-#endif /* not _DLBF_H_ */
+int
+main (void) {
+  assert (insert (rand ()) == 0);
+}
