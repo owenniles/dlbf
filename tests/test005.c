@@ -1,6 +1,6 @@
 /* test005.c
 
-   Make sure that the dlbfinsert function returns -1 when attempting to insert
+   Make sure that the dlbf_insert function returns K when attempting to insert
    a key that already exists in the Bloom filter.
 
    Copyright 2020 Owen Niles <oniles@college.harvard.edu>
@@ -29,5 +29,5 @@ main (void) {
   int r = rand ();
   
   dlbf_insert (filt, r);
-  assert (dlbf_insert (filt, r) == -1);
+  assert (dlbf_insert (filt, r) == K);
 }

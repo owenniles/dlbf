@@ -82,13 +82,13 @@ dlbf_free (uint8_t *filt)
   free (filt);
 }
 
-/* Inserts the specified key into the Bloom filter. Returns -1 if the key
-   already exists and the number of non collision-free regions into which the
-   K hash functions hash this particular key if not. */
+/* Inserts the specified key into the Bloom filter. Returns the number of hash
+   functions that will output a bit offset that falls within a non collision-
+   free zone when applied to the specified key following its insertion. */
 int
 dlbf_insert (uint8_t *filt, int x)
 {
-  if (filt == NULL || dlbf_query (filt, x) == 1)
+  if (filt == NULL)
     return -1;
 
   unsigned m = __M (filt);
@@ -97,16 +97,16 @@ dlbf_insert (uint8_t *filt, int x)
   int collisions = 0;
   
   /* The bits that are used to represent this particular key. */
-  uint32_t cache[k];
+  uint32_t offsets[k];
 
   for (int i = 0; i < (int) k; ++i)
     {
       uint8_t collision;
       uint32_t h = hash (i, x) % m;
 
-      cache[i] = h + r;
-      collision = getbit (filt, cache[i]);
-      incbit (filt, h * r / m, collision);
+      offsets[i] = h + r;
+      collision = getbit (filt, offsets[i]) | getbit (filt, h * r / m);
+      incbit (offsets, h * r / m, collision);
       collisions += collision;
     }
 
@@ -115,7 +115,7 @@ dlbf_insert (uint8_t *filt, int x)
      the most naive implementation, we calculate collisions before inserting
      the key. */
   for (int i = 0; i < (int) k; ++i)
-    incbit (filt, cache[i], 1);
+    incbit (filt, offsets[i], 1);
   
   return collisions;
 }
@@ -137,9 +137,9 @@ dlbf_query (uint8_t *filt, int x)
   return 1;
 }
 
-/* Removes the specified key from the Bloom filter. Returns the number non
-   collision-free regions into which the K hash functions hash this key if
-   not. */
+/* Removes the specified key from the Bloom filter. Returns the number of hash
+   functions that output a bit offset that lies within a non collision free
+   zone when applied to the specified key. */
 int
 dlbf_remove (uint8_t *filt, int x)
 {
