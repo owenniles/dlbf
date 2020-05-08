@@ -106,7 +106,7 @@ dlbf_insert (uint8_t *filt, int x)
 
       offsets[i] = h + r;
       collision = getbit (filt, offsets[i]) | getbit (filt, h * r / m);
-      incbit (offsets, h * r / m, collision);
+      incbit (filt, h * r / m, collision);
       collisions += collision;
     }
 
